@@ -21,16 +21,13 @@ class Liker(threading.Thread):
 
 	def run(self):
 		liker(self.username, self.password, self.tags, self.comments, self.active)
-		
 
 
 def liker(username, password, tags, comments, active):
-	#print "Starting Firefox for: "+ username
-	print "Starting Phantom for:" + username
-	#driver = webdriver.Firefox()
-	driver = webdriver.PhantomJS("/Users/JohnLecomte/Documents/python/phantomjs")
-	#print "Firefox started for: "+ username
-	print "Phantom started for: "+ username
+	print "Starting Firefox for "+username
+	driver = webdriver.Firefox()
+	#driver = webdriver.PhantomJS("/Users/JohnLecomte/Documents/python/instagram/phantomjs")
+	print "Firefox opened for "+ username
 	driver.get("https://www.instagram.com/accounts/login/")
 	user_box = WebDriverWait(driver, 10).until( EC.presence_of_element_located((By.NAME, "username")))
 	user_box.send_keys(username)
@@ -38,8 +35,21 @@ def liker(username, password, tags, comments, active):
 	pass_box.send_keys(password)
 	pass_box.send_keys(Keys.RETURN)
 	wait_for_sign_in = WebDriverWait(driver, 10).until( EC.presence_of_element_located((By.CLASS_NAME, "coreSpriteDesktopNavLogoAndWordmark")))
+
+	following_list = []
+
 	while True:
 		main_urls = []
+		if len(following_list) > 15:
+			for url in following_list:
+				driver.get(url)
+				time.sleep(3)
+				try:
+					unfollow = driver.find_element_by_tag_name("button").click()
+					following_list.remove(url)
+					time.sleep(60)
+				except:
+					pass
 		for item in tags:
 			driver.get("https://www.instagram.com/explore/tags/"+item+"/")
 			element = WebDriverWait(driver,10).until(EC.element_to_be_clickable((By.TAG_NAME,'a')))
@@ -53,7 +63,7 @@ def liker(username, password, tags, comments, active):
 					driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 					time.sleep(1)
 					newHeight = driver.execute_script("return document.body.scrollHeight")
-					if newHeight == lastHeight or count == 100:
+					if newHeight == lastHeight or count == 4:
 						break
 					lastHeight = newHeight
 					count += 1	
@@ -69,15 +79,7 @@ def liker(username, password, tags, comments, active):
 			print username + " is done loading urls for : "+ item
 		
 		print username +" is liking ", len(main_urls), " photos with tags: ", tags
-		following_list = []
-		if len(following_list) > 500:
-			for url in following_list:
-				driver.get(url)
-				try:
-					unfollow = driver.find_element_by_tag_name("button").click()
-					following_list.remove(url)
-				except:
-					pass
+		liker_Options = ["liker","liker/commenter","liker/commenter/follower"]
 		if active == "follower":
 			for url in main_urls:
 				driver.get(url)
@@ -87,7 +89,7 @@ def liker(username, password, tags, comments, active):
 					time.sleep(45)
 				except TimeoutException:
 					pass
-		else:
+		elif active in liker_Options:
 			count = 0
 			for url in main_urls:
 				driver.get(url)
@@ -107,3 +109,33 @@ def liker(username, password, tags, comments, active):
 					time.sleep(15)
 				except TimeoutException:
 					pass
+		else:
+			for thread in threads:
+				if thread[0] == username:
+					threads.remove(thread)
+				for username in usernameDatabase:
+					usernameDatabase.remove(username)
+			break
+		
+		new_file = open('/Users/JohnLecomte/Documents/python/instagram/users.txt')
+
+		for new_line in new_file:
+			new_row = new_line.strip().split(":")
+			new_username = new_row[0]
+			new_password = new_row[1]
+			new_tags = new_row[2].split(",")
+			new_comments = new_row[3].split(",")
+			new_active = new_row[4]
+			if new_username == username:
+				tags = new_tags
+				comments = new_comments
+				active = new_active
+				if password != new_password:
+					password = new_password
+					driver.get("https://www.instagram.com/accounts/login/")
+					user_box = WebDriverWait(driver, 10).until( EC.presence_of_element_located((By.NAME, "username")))
+					user_box.send_keys(username)
+					pass_box = driver.find_element_by_name("password")
+					pass_box.send_keys(password)
+					pass_box.send_keys(Keys.RETURN)
+					wait_for_sign_in = WebDriverWait(driver, 10).until( EC.presence_of_element_located((By.CLASS_NAME, "coreSpriteDesktopNavLogoAndWordmark")))
