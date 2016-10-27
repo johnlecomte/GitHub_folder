@@ -1,4 +1,3 @@
-import SubscriptionPage
 import threading
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -8,6 +7,12 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 import random
+
+threads = []
+options = ["liker","liker/commenter","liker/commenter/follower","follower"]
+usernameDatabase = []
+
+ # look up an example for this.
 
 class Liker(threading.Thread):
 
@@ -31,7 +36,7 @@ def liker(username, password, tags, comments, active):
 	driver.get("https://www.instagram.com/accounts/login/")
 	user_box = WebDriverWait(driver, 10).until( EC.presence_of_element_located((By.NAME, "username")))
 	user_box.send_keys(username)
-	pass_box = driver.find_element_by_name("password")
+	pass_box = WebDriverWait(driver, 10).until( EC.presence_of_element_located((By.NAME, "password")))
 	pass_box.send_keys(password)
 	pass_box.send_keys(Keys.RETURN)
 	wait_for_sign_in = WebDriverWait(driver, 10).until( EC.presence_of_element_located((By.CLASS_NAME, "coreSpriteDesktopNavLogoAndWordmark")))
@@ -40,7 +45,7 @@ def liker(username, password, tags, comments, active):
 
 	while True:
 		main_urls = []
-		if len(following_list) > 15:
+		if len(following_list) > 1000:
 			for url in following_list:
 				driver.get(url)
 				time.sleep(3)
@@ -63,7 +68,7 @@ def liker(username, password, tags, comments, active):
 					driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 					time.sleep(1)
 					newHeight = driver.execute_script("return document.body.scrollHeight")
-					if newHeight == lastHeight or count == 4:
+					if newHeight == lastHeight or count == 30:
 						break
 					lastHeight = newHeight
 					count += 1	
@@ -77,7 +82,7 @@ def liker(username, password, tags, comments, active):
 			main_urls.extend(photo_urls)
 			time.sleep(3)
 			print username + " is done loading urls for : "+ item
-		
+		main_urls = main_urls[0:10]
 		print username +" is liking ", len(main_urls), " photos with tags: ", tags
 		liker_Options = ["liker","liker/commenter","liker/commenter/follower"]
 		if active == "follower":
@@ -110,11 +115,9 @@ def liker(username, password, tags, comments, active):
 				except TimeoutException:
 					pass
 		else:
-			for thread in threads:
-				if thread[0] == username:
-					threads.remove(thread)
-				for username in usernameDatabase:
-					usernameDatabase.remove(username)
+			driver.close()
+			if username in usernameDatabase:
+				usernameDatabase.remove(username)
 			break
 		
 		new_file = open('/Users/JohnLecomte/Documents/python/instagram/users.txt')
@@ -139,3 +142,24 @@ def liker(username, password, tags, comments, active):
 					pass_box.send_keys(password)
 					pass_box.send_keys(Keys.RETURN)
 					wait_for_sign_in = WebDriverWait(driver, 10).until( EC.presence_of_element_located((By.CLASS_NAME, "coreSpriteDesktopNavLogoAndWordmark")))
+		start()
+
+
+def start():
+
+	file = open('/Users/JohnLecomte/Documents/python/instagram/users.txt')
+
+	for line in file:
+		row = line.strip().split(":")
+		username = row[0]
+		password = row[1]
+		tags = row[2].split(",")
+		comments = row[3].split(",")
+		active = row[4]
+		if active in options and username not in usernameDatabase:
+			new_thread = Liker(username,password,tags,comments,active)
+			threads.append(new_thread)
+			new_thread.start()
+			usernameDatabase.append(username)
+		
+start()
