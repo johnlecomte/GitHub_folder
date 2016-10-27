@@ -29,10 +29,10 @@ class Liker(threading.Thread):
 
 
 def liker(username, password, tags, comments, active):
-	print "Starting Firefox for "+username
-	driver = webdriver.Firefox()
-	#driver = webdriver.PhantomJS("/Users/JohnLecomte/Documents/python/instagram/phantomjs")
-	print "Firefox opened for "+ username
+	print "Starting Phantom for "+username
+	#driver = webdriver.Firefox()
+	driver = webdriver.PhantomJS("/Users/JohnLecomte/Documents/python/instagram/phantomjs")
+	print "Phantom opened for "+ username
 	driver.get("https://www.instagram.com/accounts/login/")
 	user_box = WebDriverWait(driver, 10).until( EC.presence_of_element_located((By.NAME, "username")))
 	user_box.send_keys(username)
