@@ -29,10 +29,10 @@ class Liker(threading.Thread):
 
 
 def liker(username, password, tags, comments, active):
-	print "Starting Phantom for "+username
+	print "Starting Firefox for "+username
 	#driver = webdriver.Firefox()
 	driver = webdriver.PhantomJS("/Users/JohnLecomte/Documents/python/instagram/phantomjs")
-	print "Phantom opened for "+ username
+	print "Firefox opened for "+ username
 	driver.get("https://www.instagram.com/accounts/login/")
 	user_box = WebDriverWait(driver, 10).until( EC.presence_of_element_located((By.NAME, "username")))
 	user_box.send_keys(username)
@@ -68,7 +68,7 @@ def liker(username, password, tags, comments, active):
 					driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 					time.sleep(1)
 					newHeight = driver.execute_script("return document.body.scrollHeight")
-					if newHeight == lastHeight or count == 30:
+					if newHeight == lastHeight or count == 200:
 						break
 					lastHeight = newHeight
 					count += 1	
@@ -82,7 +82,7 @@ def liker(username, password, tags, comments, active):
 			main_urls.extend(photo_urls)
 			time.sleep(3)
 			print username + " is done loading urls for : "+ item
-		main_urls = main_urls[0:10]
+		main_urls = main_urls[0:300]
 		print username +" is liking ", len(main_urls), " photos with tags: ", tags
 		liker_Options = ["liker","liker/commenter","liker/commenter/follower"]
 		if active == "follower":
