@@ -1,2 +1,2 @@
 naatwils:fivedollars:health,fitness:Well done!,Great photo!,Looking good!:liker/commenter
-johnlecomte:auburn123:hiking:Nice photo!,Great pic!:liker/commenter/follower
+johnlecomte:auburn123:travel,hiking:Nice photo!,Great pic!:liker/commenter/follower
